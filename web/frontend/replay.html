@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Replay • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Replay experiment</div>
+        <div class="page-subtitle">
+          Rerun an experiment using its stored configuration, dataset, and model versions.
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-row">
+            <label class="form-label" for="exp_id">Experiment ID</label>
+            <input id="exp_id" type="text" placeholder="exp-…" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button class="btn btn-outline" onclick="clearId()">Clear</button>
+            <button class="btn btn-primary" onclick="replay()">Replay</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Replay result</div>
+            <div class="card-subtitle">
+              Raw JSON metrics or error from the replay executor.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <pre id="out"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+async function replay() {
+  const id = document.getElementById("exp_id").value.trim();
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/replay/${id}`, {
+      method: "POST"
+    });
+    const data = await res.json();
+    document.getElementById("out").innerText = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("out").innerText = JSON.stringify(err, null, 2);
+  }
+}
+
+function clearId() {
+  document.getElementById("exp_id").value = "";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fromQuery = getQueryParam("experiment_id");
+  if (fromQuery) {
+    document.getElementById("exp_id").value = fromQuery;
+  }
+});
+</script>
+
+</body>
+</html>

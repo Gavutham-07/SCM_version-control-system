@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Models • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Model registry</div>
+        <div class="page-subtitle">
+          Versioned models with training scripts committed to Fossil SCM.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="loadModels()">Refresh</button>
+      </div>
+    </header>
+
+    <section class="layout-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Register model</div>
+            <div class="card-subtitle">
+              Upload a training script to create a new model version.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <form onsubmit="event.preventDefault(); uploadModel();">
+            <div class="form-row">
+              <label class="form-label" for="model_name_input">Model name</label>
+              <input id="model_name_input" type="text" placeholder="loan_default_model">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="model_file_input">Training script (train.py)</label>
+              <input id="model_file_input" type="file">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button type="reset" class="btn btn-outline">Clear</button>
+              <button type="submit" class="btn btn-primary">Register model</button>
+            </div>
+          </form>
+          <div class="muted" style="margin-top:6px;">
+            Each upload creates a new semantic version directory for this model.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Model summary</div>
+            <div class="card-subtitle">
+              High-level counts by model.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="stat-card-label">Models</div>
+              <div class="stat-card-value" id="stat_model_count">-</div>
+              <div class="stat-card-meta">Unique models</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Total versions</div>
+              <div class="stat-card-value" id="stat_model_versions">-</div>
+              <div class="stat-card-meta">All versions across models</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:22px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Models</div>
+            <div class="card-subtitle">
+              Browse registered models and their versions.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Versions</th>
+                </tr>
+              </thead>
+              <tbody id="model_table_body">
+                <tr><td colspan="2" class="table-empty">Loading models…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+async function uploadModel() {
+  const nameInput = document.getElementById("model_name_input");
+  const fileInput = document.getElementById("model_file_input");
+
+  if (!nameInput.value) {
+    alert("Model name is required.");
+    return;
+  }
+  if (!fileInput.files.length) {
+    alert("Please choose a training script.");
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("model", nameInput.value);
+  fd.append("file", fileInput.files[0]);
+
+  try {
+    const res = await fetch(API + "/models/", {
+      method: "POST",
+      body: fd
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Registration failed: " + JSON.stringify(data));
+      return;
+    }
+    alert("Registered " + data.model + " " + data.version);
+    nameInput.value = "";
+    fileInput.value = "";
+    loadModels();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error during model registration.");
+  }
+}
+
+async function loadModels() {
+  const tbody = document.getElementById("model_table_body");
+  try {
+    const data = await apiFetch("/models/");
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="table-empty">No models registered yet.</td></tr>';
+    } else {
+      let totalVersions = 0;
+      tbody.innerHTML = data.map(m => {
+        const versions = m.versions || [];
+        totalVersions += versions.length;
+        const pills = versions.map(v => `<span class="pill">${v}</span>`).join(" ");
+        return `
+          <tr>
+            <td>${m.model}</td>
+            <td>${pills || '<span class="muted">No versions</span>'}</td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("stat_model_count").innerText = data.length;
+      document.getElementById("stat_model_versions").innerText = totalVersions;
+    }
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="2" class="table-empty text-danger">Failed to load models.</td></tr>';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadModels();
+});
+</script>
+
+</body>
+</html>

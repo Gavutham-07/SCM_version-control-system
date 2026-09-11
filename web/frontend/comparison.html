@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Experiment Comparison • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Compare experiments</div>
+        <div class="page-subtitle">
+          Dynamic metric-aware comparison across multiple experiment runs.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="loadComparison()">Refresh</button>
+        <button class="btn btn-outline" onclick="downloadJSON()">Export JSON</button>
+        <button class="btn btn-outline" onclick="downloadCSV()">Export CSV</button>
+      </div>
+    </header>
+
+    <section class="layout-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Selection & filters</div>
+            <div class="card-subtitle">
+              Narrow down experiments by dataset, model, and status.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <label class="form-label">Metric for sorting & chart</label>
+            <select id="metric_select"></select>
+          </div>
+
+          <div class="toolbar" style="margin-top:4px;">
+            <div class="toolbar-group">
+              <span class="toolbar-label">Dataset</span>
+              <select id="filter_dataset">
+                <option value="">All datasets</option>
+              </select>
+            </div>
+            <div class="toolbar-group">
+              <span class="toolbar-label">Model</span>
+              <select id="filter_model">
+                <option value="">All models</option>
+              </select>
+            </div>
+            <div class="toolbar-group">
+              <span class="toolbar-label">Status</span>
+              <select id="filter_status">
+                <option value="">All</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+                <option value="running">Running</option>
+                <option value="unknown">Unknown</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top:10px;">
+            <div class="toolbar">
+              <div class="toolbar-group">
+                <button class="btn btn-sm btn-outline" onclick="selectAll(true)">Select all</button>
+                <button class="btn btn-sm btn-outline" onclick="selectAll(false)">Clear selection</button>
+              </div>
+              <div class="toolbar-group">
+                <span class="toolbar-label">Search</span>
+                <input type="text" id="search_input" placeholder="Experiment ID contains…">
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="margin-top:10px; max-height:260px;">
+            <table>
+              <thead>
+                <tr>
+                  <th></th>
+                  <th>ID</th>
+                  <th>Dataset</th>
+                  <th>Model</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="selection_table_body">
+                <tr><td colspan="5" class="table-empty">Loading…</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="margin-top:8px;" class="muted">
+            Selected: <span id="selected_count">0</span>. If none selected, top experiments by chosen metric are used.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Metric chart</div>
+            <div class="card-subtitle">
+              Visual comparison for the active metric across selected experiments.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="chart-container">
+            <canvas id="comparison_chart"></canvas>
+          </div>
+          <div id="chart_legend" class="chart-legend"></div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Comparison table</div>
+            <div class="card-subtitle">
+              Sort and inspect metrics across experiments. Highlighted rows indicate best performance for the active metric.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead id="comparison_head"></thead>
+              <tbody id="comparison_body">
+                <tr><td colspan="5" class="table-empty">No data yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+let allExperiments = [];
+let metricKeys = [];
+let sortState = { key: null, direction: "desc" };
+let chartInstance = null;
+
+function normalizeStatus(value) {
+  return (value || "").toLowerCase();
+}
+
+async function loadComparison() {
+  try {
+    const res = await fetch("/api/analytics/compare");
+    const payload = await res.json();
+    allExperiments = payload.experiments || [];
+
+    collectMetricKeys();
+    populateFilters();
+    renderSelectionTable();
+    renderMetricSelect();
+    renderComparison();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("comparison_body").innerHTML =
+      '<tr><td colspan="5" class="table-empty text-danger">Failed to load comparison data.</td></tr>';
+  }
+}
+
+function collectMetricKeys() {
+  const keys = new Set();
+  allExperiments.forEach(e => {
+    if (e.metrics) {
+      Object.keys(e.metrics).forEach(k => keys.add(k));
+    }
+  });
+  metricKeys = Array.from(keys);
+  if (!sortState.key && metricKeys.length) {
+    sortState.key = metricKeys.includes("accuracy") ? "accuracy" : metricKeys[0];
+  }
+}
+
+function populateFilters() {
+  const dsSelect = document.getElementById("filter_dataset");
+  const modelSelect = document.getElementById("filter_model");
+
+  const datasets = new Set();
+  const models = new Set();
+  allExperiments.forEach(e => {
+    if (e.dataset) datasets.add(e.dataset);
+    if (e.model) models.add(e.model);
+  });
+
+  const currentDs = dsSelect.value;
+  const currentModel = modelSelect.value;
+
+  dsSelect.innerHTML = '<option value="">All datasets</option>';
+  Array.from(datasets).sort().forEach(d => {
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.textContent = d;
+    if (d === currentDs) opt.selected = true;
+    dsSelect.appendChild(opt);
+  });
+
+  modelSelect.innerHTML = '<option value="">All models</option>';
+  Array.from(models).sort().forEach(m => {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    if (m === currentModel) opt.selected = true;
+    modelSelect.appendChild(opt);
+  });
+}
+
+function getFilteredExperiments() {
+  const ds = document.getElementById("filter_dataset").value;
+  const model = document.getElementById("filter_model").value;
+  const status = normalizeStatus(document.getElementById("filter_status").value);
+  const search = (document.getElementById("search_input").value || "").toLowerCase();
+
+  return allExperiments.filter(e => {
+    if (ds && e.dataset !== ds) return false;
+    if (model && e.model !== model) return false;
+
+    const st = normalizeStatus(e.status);
+    if (status && st !== status) return false;
+
+    if (search) {
+      const id = (e.experiment_id || "").toLowerCase();
+      if (!id.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+function renderSelectionTable() {
+  const tbody = document.getElementById("selection_table_body");
+  const rows = getFilteredExperiments();
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No experiments match filters.</td></tr>';
+    updateSelectedCount();
+    return;
+  }
+
+  tbody.innerHTML = rows.map(e => {
+    const id = e.experiment_id;
+    const checked = isSelected(id) ? "checked" : "";
+    const badge = statusBadge(e.status);
+    return `
+      <tr>
+        <td>
+          <input type="checkbox"
+                 data-exp-id="${id}"
+                 onchange="onSelectionChange('${id}', this.checked)"
+                 ${checked}>
+        </td>
+        <td class="text-mono">${id}</td>
+        <td>${e.dataset || "-"}</td>
+        <td>${e.model || "-"}</td>
+        <td>${badge}</td>
+      </tr>
+    `;
+  }).join("");
+
+  updateSelectedCount();
+}
+
+function isSelected(id) {
+  const checkboxes = document.querySelectorAll('#selection_table_body input[type="checkbox"]');
+  for (const cb of checkboxes) {
+    if (cb.getAttribute("data-exp-id") === id && cb.checked) return true;
+  }
+  return false;
+}
+
+function onSelectionChange(id, checked) {
+  updateSelectedCount();
+  renderComparison();
+}
+
+function selectAll(value) {
+  const checkboxes = document.querySelectorAll('#selection_table_body input[type="checkbox"]');
+  checkboxes.forEach(cb => cb.checked = value);
+  updateSelectedCount();
+  renderComparison();
+}
+
+function updateSelectedCount() {
+  const checkboxes = document.querySelectorAll('#selection_table_body input[type="checkbox"]');
+  let count = 0;
+  checkboxes.forEach(cb => { if (cb.checked) count += 1; });
+  document.getElementById("selected_count").innerText = count;
+}
+
+function renderMetricSelect() {
+  const metricSelect = document.getElementById("metric_select");
+  metricSelect.innerHTML = "";
+
+  if (!metricKeys.length) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "No metrics available";
+    metricSelect.appendChild(opt);
+    metricSelect.disabled = true;
+    return;
+  }
+
+  metricSelect.disabled = false;
+  metricKeys.forEach(k => {
+    const opt = document.createElement("option");
+    opt.value = k;
+    opt.textContent = k;
+    metricSelect.appendChild(opt);
+  });
+
+  if (sortState.key) {
+    metricSelect.value = sortState.key;
+  }
+
+  metricSelect.addEventListener("change", () => {
+    sortState.key = metricSelect.value || metricKeys[0];
+    renderComparison();
+  });
+}
+
+function getSelectedExperiments(filtered) {
+  const ids = new Set();
+  document
+    .querySelectorAll('#selection_table_body input[type="checkbox"]')
+    .forEach(cb => {
+      if (cb.checked) ids.add(cb.getAttribute("data-exp-id"));
+    });
+
+  const selected = filtered.filter(e => ids.has(e.experiment_id));
+  if (selected.length) return selected;
+
+  // Fallback: top 10 by active metric
+  const key = sortState.key;
+  const rows = filtered.slice();
+  if (key) {
+    rows.sort((a, b) => {
+      const av = a.metrics && typeof a.metrics[key] === "number" ? a.metrics[key] : -Infinity;
+      const bv = b.metrics && typeof b.metrics[key] === "number" ? b.metrics[key] : -Infinity;
+      return (bv - av);
+    });
+  }
+  return rows.slice(0, 10);
+}
+
+function renderComparison() {
+  const filtered = getFilteredExperiments();
+  const activeMetric = sortState.key;
+  const selected = getSelectedExperiments(filtered);
+
+  renderComparisonTable(selected, activeMetric);
+  renderChart(selected, activeMetric);
+}
+
+function renderComparisonTable(rows, activeMetric) {
+  const thead = document.getElementById("comparison_head");
+  const tbody = document.getElementById("comparison_body");
+
+  if (!rows.length) {
+    thead.innerHTML = "";
+    tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No experiments to compare.</td></tr>';
+    return;
+  }
+
+  const keys = metricKeys.slice();
+  const metricHeaders = keys.map(k => {
+    const indicator = k === activeMetric ? (sortState.direction === "asc" ? "↑" : "↓") : "";
+    return `<th class="table-sortable" onclick="toggleMetricSort('${k}')">${k} <span>${indicator}</span></th>`;
+  }).join("");
+
+  thead.innerHTML = `
+    <tr>
+      <th>ID</th>
+      <th>Dataset</th>
+      <th>Model</th>
+      <th>Status</th>
+      ${metricHeaders}
+    </tr>
+  `;
+
+  const key = activeMetric;
+  if (key) {
+    rows = rows.slice().sort((a, b) => {
+      const av = a.metrics && typeof a.metrics[key] === "number" ? a.metrics[key] : -Infinity;
+      const bv = b.metrics && typeof b.metrics[key] === "number" ? b.metrics[key] : -Infinity;
+      return sortState.direction === "asc" ? av - bv : bv - av;
+    });
+  }
+
+  let bestVal = -Infinity;
+  if (key) {
+    rows.forEach(e => {
+      const v = e.metrics && typeof e.metrics[key] === "number" ? e.metrics[key] : null;
+      if (v !== null && v > bestVal) bestVal = v;
+    });
+  }
+
+  tbody.innerHTML = rows.map(e => {
+    const statusHtml = statusBadge(e.status);
+    const isBest = key && bestVal !== -Infinity &&
+      e.metrics &&
+      typeof e.metrics[key] === "number" &&
+      e.metrics[key] === bestVal;
+
+    const metricCells = keys.map(k => {
+      const val = e.metrics && Object.prototype.hasOwnProperty.call(e.metrics, k)
+        ? e.metrics[k]
+        : "-";
+      const formatted = typeof val === "number" ? val.toFixed(4) : val;
+      return `<td>${formatted}</td>`;
+    }).join("");
+
+    const rowClass = isBest ? "row-best" : "";
+    return `
+      <tr class="${rowClass}">
+        <td class="text-mono">${e.experiment_id}</td>
+        <td>${e.dataset || "-"}</td>
+        <td>${e.model || "-"}</td>
+        <td>${statusHtml}</td>
+        ${metricCells}
+      </tr>
+    `;
+  }).join("");
+}
+
+function toggleMetricSort(metric) {
+  if (sortState.key === metric) {
+    sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+  } else {
+    sortState.key = metric;
+    sortState.direction = "desc";
+  }
+  const metricSelect = document.getElementById("metric_select");
+  if (metricSelect && metricSelect.value !== sortState.key) {
+    metricSelect.value = sortState.key;
+  }
+  renderComparison();
+}
+
+function renderChart(rows, metric) {
+  const canvas = document.getElementById("comparison_chart");
+  const legend = document.getElementById("chart_legend");
+
+  if (!canvas || !metric || !rows.length) {
+    if (legend) legend.textContent = "No data to display.";
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+    return;
+  }
+
+  const labels = rows.map(e => e.experiment_id);
+  const data = rows.map(e => {
+    const val = e.metrics && typeof e.metrics[metric] === "number" ? e.metrics[metric] : null;
+    return val;
+  });
+
+  const hasValues = data.some(v => v !== null);
+  if (!hasValues) {
+    legend.textContent = "Selected metric is not present on these experiments.";
+    if (chartInstance) {
+      chartInstance.destroy();
+      chartInstance = null;
+    }
+    return;
+  }
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  const ctx = canvas.getContext("2d");
+  chartInstance = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [{
+        label: metric,
+        data,
+        backgroundColor: "#22c55e",
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: { color: "#9ca3af" },
+          grid: { display: false }
+        },
+        y: {
+          ticks: { color: "#9ca3af" },
+          grid: { color: "#111827" }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${metric}: ${ctx.parsed.y}`
+          }
+        }
+      }
+    }
+  });
+
+  legend.textContent = `Bar chart for metric "${metric}" across ${rows.length} experiment(s).`;
+}
+
+function downloadJSON() {
+  const payload = {
+    generated_at: new Date().toISOString(),
+    experiments: allExperiments
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "experiment_comparison.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function downloadCSV() {
+  if (!allExperiments.length) {
+    alert("No experiments to export.");
+    return;
+  }
+
+  const keys = new Set(["experiment_id", "dataset", "model", "status"]);
+  allExperiments.forEach(e => {
+    if (e.metrics) {
+      Object.keys(e.metrics).forEach(k => keys.add("metric_" + k));
+    }
+  });
+
+  const header = Array.from(keys);
+  const rows = allExperiments.map(e => {
+    const row = [];
+    header.forEach(k => {
+      if (k === "experiment_id" || k === "dataset" || k === "model" || k === "status") {
+        row.push(e[k] != null ? String(e[k]) : "");
+      } else if (k.startsWith("metric_")) {
+        const metricName = k.replace("metric_", "");
+        const v = e.metrics && Object.prototype.hasOwnProperty.call(e.metrics, metricName)
+          ? e.metrics[metricName]
+          : "";
+        row.push(String(v));
+      } else {
+        row.push("");
+      }
+    });
+    return row;
+  });
+
+  const csvLines = [];
+  csvLines.push(header.join(","));
+  rows.forEach(row => {
+    csvLines.push(row.map(value => {
+      const needsQuotes = /[",\n]/.test(value);
+      let escaped = value.replace(/"/g, '""');
+      if (needsQuotes) {
+        escaped = `"${escaped}"`;
+      }
+      return escaped;
+    }).join(","));
+  });
+
+  const blob = new Blob([csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "experiment_comparison.csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const filterIds = ["filter_dataset", "filter_model", "filter_status"];
+  filterIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener("change", () => {
+      renderSelectionTable();
+      renderComparison();
+    });
+  });
+
+  const search = document.getElementById("search_input");
+  if (search) {
+    search.addEventListener("input", () => {
+      renderSelectionTable();
+      renderComparison();
+    });
+  }
+
+  loadComparison();
+});
+</script>
+
+</body>
+</html>

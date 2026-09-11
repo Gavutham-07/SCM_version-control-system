@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Inference • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Inference</div>
+        <div class="page-subtitle">
+          Run predictions against a trained experiment, using either a guided form or raw JSON.
+        </div>
+      </div>
+    </header>
+
+    <section>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-row">
+            <label class="form-label" for="exp_id">Experiment ID</label>
+            <input id="exp_id" type="text" placeholder="exp-…" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="layout-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Guided loan example</div>
+              <div class="card-subtitle">
+                Structured input fields for the loan default demonstration model.
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="form-row">
+                <label class="form-label" for="age">Age</label>
+                <input id="age" type="number" placeholder="35">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="income">Income</label>
+                <input id="income" type="number" placeholder="55000">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="loan_amount">Loan amount</label>
+                <input id="loan_amount" type="number" placeholder="15000">
+              </div>
+              <div class="form-row">
+                <label class="form-label" for="credit_score">Credit score</label>
+                <input id="credit_score" type="number" placeholder="720">
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+              <button class="btn btn-outline" onclick="clearGuided()">Clear</button>
+              <button class="btn btn-primary" onclick="predictGuided()">Predict</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Schema-agnostic JSON inference</div>
+              <div class="card-subtitle">
+                Send an arbitrary JSON object directly to the experiment's inference engine.
+              </div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-row">
+              <label class="form-label" for="json_input">Input JSON</label>
+              <textarea id="json_input" placeholder='{"feature1": 1.0, "feature2": 0.5}'></textarea>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:10px;">
+              <button class="btn btn-outline" onclick="clearJson()">Clear</button>
+              <button class="btn btn-primary" onclick="predictJson()">Infer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Result</div>
+            <div class="card-subtitle">
+              Raw JSON response from the prediction endpoint.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <pre id="result"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+function getExperimentId() {
+  return document.getElementById("exp_id").value.trim();
+}
+
+async function predictGuided() {
+  const id = getExperimentId();
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+
+  const body = {
+    age: Number(document.getElementById("age").value),
+    income: Number(document.getElementById("income").value),
+    loan_amount: Number(document.getElementById("loan_amount").value),
+    credit_score: Number(document.getElementById("credit_score").value)
+  };
+
+  try {
+    const data = await apiFetch(`/experiments/${id}/predict`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerText = JSON.stringify(err, null, 2);
+  }
+}
+
+async function predictJson() {
+  const id = getExperimentId();
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+
+  const raw = document.getElementById("json_input").value || "{}";
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (e) {
+    alert("Input JSON is invalid.");
+    return;
+  }
+
+  try {
+    const data = await apiFetch(`/experiments/${id}/infer`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    document.getElementById("result").innerText = JSON.stringify(data, null, 2);
+  } catch (err) {
+    console.error(err);
+    document.getElementById("result").innerText = JSON.stringify(err, null, 2);
+  }
+}
+
+function clearGuided() {
+  ["age", "income", "loan_amount", "credit_score"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+}
+
+function clearJson() {
+  document.getElementById("json_input").value = "";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fromQuery = getQueryParam("experiment_id");
+  if (fromQuery) {
+    document.getElementById("exp_id").value = fromQuery;
+  }
+});
+</script>
+
+</body>
+</html>

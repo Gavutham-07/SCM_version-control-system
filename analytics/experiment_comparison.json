@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-01-22T09:04:12.931174",
+  "experiments": [
+    {
+      "experiment_id": "exp-20260122085337",
+      "dataset": "mutta:v1",
+      "model": "loans1:v1",
+      "status": "success",
+      "return_code": 0
+    },
+    {
+      "experiment_id": "exp-20260120175620-c11ce4",
+      "dataset": "loans:v1",
+      "model": "loan_default_model:v1",
+      "status": "success",
+      "return_code": 0
+    }
+  ]
+}

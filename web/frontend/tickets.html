@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Tickets • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Tickets</div>
+        <div class="page-subtitle">
+          Automatically generated tickets for failed experiments and execution issues.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="loadTickets()">Refresh</button>
+      </div>
+    </header>
+
+    <section>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Open & historical tickets</div>
+            <div class="card-subtitle">
+              Each ticket captures the failing experiment, error message, and log path.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Experiment</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Error</th>
+                  <th>Log path</th>
+                </tr>
+              </thead>
+              <tbody id="tickets_body">
+                <tr><td colspan="6" class="table-empty">Loading tickets…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+async function loadTickets() {
+  const tbody = document.getElementById("tickets_body");
+  try {
+    const data = await apiFetch("/tickets/");
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No tickets created yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.map(t => {
+      const status = (t.status || "").toLowerCase();
+      const badge = status === "open"
+        ? '<span class="badge badge-failed">Open</span>'
+        : '<span class="badge badge-success">Closed</span>';
+      const expId = t.source && t.source.experiment_id ? t.source.experiment_id : "-";
+      const logPath = t.log_path || "-";
+      const error = t.error || "-";
+      const created = t.created_at || "-";
+
+      return `
+        <tr>
+          <td class="text-mono">${t.ticket_id}</td>
+          <td>
+            ${expId !== "-" ? `<a href="/ui/experiment_output.html?experiment_id=${encodeURIComponent(expId)}">${expId}</a>` : "-"}
+          </td>
+          <td>${badge}</td>
+          <td>${created}</td>
+          <td>${error}</td>
+          <td><code>${logPath}</code></td>
+        </tr>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty text-danger">Failed to load tickets.</td></tr>';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadTickets();
+});
+</script>
+
+</body>
+</html>
+

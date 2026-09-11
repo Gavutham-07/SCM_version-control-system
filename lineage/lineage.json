@@ -1,0 +1,44 @@
+{
+  "exp-20260122085337": {
+    "dataset": "mutta:v1",
+    "model": "loans1:v1",
+    "config_path": "experiments/exp-20260122085337/config.json",
+    "executed_at": "2026-01-22T08:57:03.923702",
+    "status": "success"
+  },
+  "exp-20260120175620-c11ce4": {
+    "dataset": "loans:v1",
+    "model": "loan_default_model:v1",
+    "config_path": "experiments/exp-20260120175620-c11ce4/config.json",
+    "executed_at": "2026-01-22T09:02:26.606552",
+    "status": "success"
+  },
+  "exp-20260122094726": {
+    "dataset": "mutta:v2",
+    "model": "loans1:v1",
+    "config_path": "experiments/exp-20260122094726/config.json",
+    "executed_at": "2026-01-22T09:47:40.156415",
+    "status": "failed"
+  },
+  "exp-loans-loans1-d1-m1-r1": {
+    "dataset": "loans:v1",
+    "model": "loans1:v1",
+    "config_path": "experiments/exp-loans-loans1-d1-m1-r1/config.json",
+    "executed_at": "2026-02-01T14:58:17.621300",
+    "status": "success"
+  },
+  "exp-loans-loans1-d1-m1-r2": {
+    "dataset": "loans:v1",
+    "model": "loans1:v1",
+    "config_path": "experiments/exp-loans-loans1-d1-m1-r2/config.json",
+    "executed_at": "2026-02-01T15:07:46.142492",
+    "status": "failed"
+  },
+  "exp-mutta-loans1-d1-m1-r1": {
+    "dataset": "mutta:v1",
+    "model": "loans1:v1",
+    "config_path": "experiments/exp-mutta-loans1-d1-m1-r1/config.json",
+    "executed_at": "2026-02-01T16:03:04.001045",
+    "status": "failed"
+  }
+}

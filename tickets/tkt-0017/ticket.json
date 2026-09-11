@@ -1,0 +1,12 @@
+{
+  "ticket_id": "tkt-0017",
+  "type": "experiment_failure",
+  "source": {
+    "experiment_id": "exp-mutta-loans1-d1-m1-r1",
+    "mode": "execution"
+  },
+  "status": "open",
+  "error": "train.py exited with code 1",
+  "log_path": "experiments/exp-mutta-loans1-d1-m1-r1/logs/training.log",
+  "created_at": "2026-02-01T16:02:45.034197"
+}

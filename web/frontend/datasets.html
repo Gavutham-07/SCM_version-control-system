@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Datasets • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Dataset registry</div>
+        <div class="page-subtitle">
+          Versioned datasets tracked and committed through Fossil SCM.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="loadDatasets()">Refresh</button>
+      </div>
+    </header>
+
+    <section class="layout-grid">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Upload dataset</div>
+            <div class="card-subtitle">
+              Create a new dataset version from a file.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <form onsubmit="event.preventDefault(); uploadDataset();">
+            <div class="form-row">
+              <label class="form-label" for="dataset_name_input">Dataset name</label>
+              <input id="dataset_name_input" type="text" placeholder="loan_default_data">
+            </div>
+            <div class="form-row">
+              <label class="form-label" for="dataset_file_input">Dataset file</label>
+              <input id="dataset_file_input" type="file">
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+              <button type="reset" class="btn btn-outline">Clear</button>
+              <button type="submit" class="btn btn-primary">Upload dataset</button>
+            </div>
+          </form>
+          <div class="muted" style="margin-top:6px;">
+            Each upload creates a new semantic version (v1, v2, …) under the same dataset name.
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Dataset summary</div>
+            <div class="card-subtitle">
+              High-level counts by dataset.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="stat-grid" id="dataset_stats">
+            <div class="stat-card">
+              <div class="stat-card-label">Datasets</div>
+              <div class="stat-card-value" id="stat_dataset_count">-</div>
+              <div class="stat-card-meta">Unique dataset names</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card-label">Total versions</div>
+              <div class="stat-card-value" id="stat_dataset_versions">-</div>
+              <div class="stat-card-meta">All versions across datasets</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:22px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Datasets</div>
+            <div class="card-subtitle">
+              Browse registered datasets and their versions.
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Versions</th>
+                </tr>
+              </thead>
+              <tbody id="dataset_table_body">
+                <tr><td colspan="2" class="table-empty">Loading datasets…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+async function uploadDataset() {
+  const nameInput = document.getElementById("dataset_name_input");
+  const fileInput = document.getElementById("dataset_file_input");
+
+  if (!nameInput.value) {
+    alert("Dataset name is required.");
+    return;
+  }
+  if (!fileInput.files.length) {
+    alert("Please choose a dataset file.");
+    return;
+  }
+
+  const fd = new FormData();
+  fd.append("dataset", nameInput.value);
+  fd.append("file", fileInput.files[0]);
+
+  try {
+    const res = await fetch(API + "/datasets/", {
+      method: "POST",
+      body: fd
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Upload failed: " + JSON.stringify(data));
+      return;
+    }
+    alert("Uploaded " + data.dataset + " " + data.version);
+    nameInput.value = "";
+    fileInput.value = "";
+    loadDatasets();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error during upload.");
+  }
+}
+
+async function loadDatasets() {
+  const tbody = document.getElementById("dataset_table_body");
+  try {
+    const data = await apiFetch("/datasets/");
+    if (!data.length) {
+      tbody.innerHTML = '<tr><td colspan="2" class="table-empty">No datasets registered yet.</td></tr>';
+    } else {
+      let totalVersions = 0;
+      tbody.innerHTML = data.map(ds => {
+        const versions = ds.versions || [];
+        totalVersions += versions.length;
+        const pills = versions.map(v => `<span class="pill">${v}</span>`).join(" ");
+        return `
+          <tr>
+            <td>${ds.dataset}</td>
+            <td>
+              ${pills || '<span class="muted">No versions</span>'}
+            </td>
+          </tr>
+        `;
+      }).join("");
+
+      document.getElementById("stat_dataset_count").innerText = data.length;
+      document.getElementById("stat_dataset_versions").innerText = totalVersions;
+    }
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="2" class="table-empty text-danger">Failed to load datasets.</td></tr>';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadDatasets();
+});
+</script>
+
+</body>
+</html>

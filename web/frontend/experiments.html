@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>FossilAI Experiments</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">Experiment Dashboard</div>
+        <div class="page-subtitle">
+          Version-controlled AI experimentation with datasets, models, and reproducible runs.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="refreshAll()">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <section>
+      <div class="layout-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Run summary</div>
+              <div class="card-subtitle">High-level view across all experiments</div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <div class="stat-grid" id="stat_cards">
+              <div class="stat-card">
+                <div class="stat-card-label">Experiments</div>
+                <div class="stat-card-value" id="stat_total_experiments">-</div>
+                <div class="stat-card-meta">Total created</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-label">Successful</div>
+                <div class="stat-card-value text-success" id="stat_successful">-</div>
+                <div class="stat-card-meta">Completed without error</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-label">Failed / Error</div>
+                <div class="stat-card-value text-danger" id="stat_failed">-</div>
+                <div class="stat-card-meta">Needs investigation</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-card-label">Best accuracy</div>
+                <div class="stat-card-value" id="stat_best_accuracy">-</div>
+                <div class="stat-card-meta">Max of reported metrics</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Create experiment</div>
+              <div class="card-subtitle">Bind a dataset, model, and hyperparameters.</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <form onsubmit="event.preventDefault(); createExperiment();">
+              <div class="form-grid">
+                <div class="form-row">
+                  <label class="form-label" for="dataset_select">Dataset</label>
+                  <select id="dataset_select">
+                    <option value="">Select dataset…</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label class="form-label" for="dataset_version_select">Dataset version</label>
+                  <select id="dataset_version_select">
+                    <option value="">Select version…</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label class="form-label" for="model_select">Model</label>
+                  <select id="model_select">
+                    <option value="">Select model…</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label class="form-label" for="model_version_select">Model version</label>
+                  <select id="model_version_select">
+                    <option value="">Select version…</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <label class="form-label" for="params">
+                  Hyperparameters (JSON)
+                </label>
+                <textarea id="params" placeholder='{"max_iter": 200}'></textarea>
+                <div class="muted" style="margin-top:4px;">
+                  Parsed as JSON and passed directly into your training script.
+                </div>
+              </div>
+
+              <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+                <button type="button" class="btn btn-outline" onclick="resetExperimentForm()">
+                  Clear
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  Create experiment
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:22px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Experiments</div>
+            <div class="card-subtitle">
+              Browse and act on all versioned experiments.
+            </div>
+          </div>
+          <div class="card-actions">
+            <span class="chip">
+              <span class="chip-dot"></span>
+              <span id="experiment_count_label">0 experiments</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <div class="toolbar">
+            <div class="toolbar-group">
+              <span class="toolbar-label">Filter:</span>
+              <select id="filter_status">
+                <option value="">All statuses</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
+                <option value="running">Running</option>
+                <option value="unknown">Unknown</option>
+              </select>
+              <input type="text" id="filter_search" placeholder="Search by ID, dataset, or model">
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Dataset</th>
+                  <th>Model</th>
+                  <th>Status</th>
+                  <th class="table-sortable" onclick="sortExperiments('accuracy')">
+                    Accuracy
+                    <span id="sort_accuracy_indicator">⇅</span>
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="experiment_table_body">
+                <tr><td colspan="6" class="table-empty">Loading experiments…</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;" class="muted">
+        Tip: use <a href="/ui/comparison.html">Compare</a> for multi-metric analytics across experiments.
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+let allExperiments = [];
+let sortState = { key: "accuracy", direction: "desc" };
+let datasetsCache = [];
+let modelsCache = [];
+
+async function refreshAll() {
+  await Promise.all([loadExperimentsSummary(), loadDatasets(), loadModels()]);
+}
+
+async function loadExperimentsSummary() {
+  try {
+    const res = await fetch("/api/analytics/compare");
+    const data = await res.json();
+    const experiments = data.experiments || [];
+    allExperiments = experiments;
+
+    const total = experiments.length;
+    const successful = experiments.filter(e => (e.status || "").toLowerCase() === "success").length;
+    const failed = experiments.filter(e => (e.status || "").toLowerCase() === "failed" || (e.status || "").toLowerCase() === "error").length;
+    const bestAccuracy = experiments.reduce((max, e) => {
+      const val = e.metrics && typeof e.metrics.accuracy === "number"
+        ? e.metrics.accuracy
+        : null;
+      return val !== null && val > max ? val : max;
+    }, -Infinity);
+
+    document.getElementById("stat_total_experiments").innerText = total || 0;
+    document.getElementById("stat_successful").innerText = successful || 0;
+    document.getElementById("stat_failed").innerText = failed || 0;
+    document.getElementById("stat_best_accuracy").innerText =
+      bestAccuracy === -Infinity ? "-" : bestAccuracy.toFixed(4);
+
+    document.getElementById("experiment_count_label").innerText =
+      total === 1 ? "1 experiment" : total + " experiments";
+
+    renderExperimentsTable();
+  } catch (err) {
+    console.error(err);
+    const body = document.getElementById("experiment_table_body");
+    body.innerHTML = '<tr><td colspan="6" class="table-empty text-danger">Failed to load experiments.</td></tr>';
+  }
+}
+
+function renderExperimentsTable() {
+  const tbody = document.getElementById("experiment_table_body");
+  const statusFilter = (document.getElementById("filter_status").value || "").toLowerCase();
+  const search = (document.getElementById("filter_search").value || "").toLowerCase();
+
+  let rows = allExperiments.slice();
+
+  if (statusFilter) {
+    rows = rows.filter(e => (e.status || "").toLowerCase() === statusFilter);
+  }
+
+  if (search) {
+    rows = rows.filter(e => {
+      const id = (e.experiment_id || "").toLowerCase();
+      const dataset = (e.dataset || "").toLowerCase();
+      const model = (e.model || "").toLowerCase();
+      return id.includes(search) || dataset.includes(search) || model.includes(search);
+    });
+  }
+
+  rows.sort((a, b) => {
+    if (sortState.key === "accuracy") {
+      const av = a.metrics && typeof a.metrics.accuracy === "number" ? a.metrics.accuracy : -Infinity;
+      const bv = b.metrics && typeof b.metrics.accuracy === "number" ? b.metrics.accuracy : -Infinity;
+      return sortState.direction === "asc" ? av - bv : bv - av;
+    }
+    return 0;
+  });
+
+  let bestAccuracy = -Infinity;
+  rows.forEach(e => {
+    const v = e.metrics && typeof e.metrics.accuracy === "number" ? e.metrics.accuracy : null;
+    if (v !== null && v > bestAccuracy) bestAccuracy = v;
+  });
+
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="6" class="table-empty">No experiments found.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = rows.map(e => {
+    const accuracy = e.metrics && typeof e.metrics.accuracy === "number"
+      ? e.metrics.accuracy.toFixed(4)
+      : "-";
+
+    const isBest = bestAccuracy !== -Infinity &&
+      e.metrics &&
+      typeof e.metrics.accuracy === "number" &&
+      e.metrics.accuracy === bestAccuracy;
+
+    const statusHtml = statusBadge(e.status);
+
+    const datasetLabel = e.dataset || "-";
+    const modelLabel = e.model || "-";
+
+    const rowClass = isBest ? "row-best" : "";
+
+    return `
+      <tr class="${rowClass}">
+        <td class="text-mono">${e.experiment_id}</td>
+        <td>${datasetLabel}</td>
+        <td>${modelLabel}</td>
+        <td>${statusHtml}</td>
+        <td>${accuracy}</td>
+        <td>
+          <button class="btn btn-sm btn-outline" onclick="viewExperiment('${e.experiment_id}')">View</button>
+          <button class="btn btn-sm" onclick="runExperiment('${e.experiment_id}')">Run</button>
+          <button class="btn btn-sm btn-outline" onclick="replayExperiment('${e.experiment_id}')">Replay</button>
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function sortExperiments(key) {
+  if (sortState.key === key) {
+    sortState.direction = sortState.direction === "asc" ? "desc" : "asc";
+  } else {
+    sortState.key = key;
+    sortState.direction = "desc";
+  }
+
+  const indicator = document.getElementById("sort_accuracy_indicator");
+  if (sortState.direction === "asc") {
+    indicator.textContent = "↑";
+  } else {
+    indicator.textContent = "↓";
+  }
+
+  renderExperimentsTable();
+}
+
+async function loadDatasets() {
+  try {
+    const data = await apiFetch("/datasets/");
+    datasetsCache = data || [];
+    const datasetSelect = document.getElementById("dataset_select");
+
+    datasetSelect.innerHTML = '<option value="">Select dataset…</option>';
+    datasetsCache.forEach(d => {
+      const opt = document.createElement("option");
+      opt.value = d.dataset;
+      opt.textContent = d.dataset;
+      datasetSelect.appendChild(opt);
+    });
+
+    updateDatasetVersions();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function updateDatasetVersions() {
+  const datasetName = document.getElementById("dataset_select").value;
+  const versionSelect = document.getElementById("dataset_version_select");
+  versionSelect.innerHTML = '<option value="">Select version…</option>';
+
+  const found = datasetsCache.find(d => d.dataset === datasetName);
+  if (found && Array.isArray(found.versions)) {
+    found.versions.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      versionSelect.appendChild(opt);
+    });
+  }
+}
+
+async function loadModels() {
+  try {
+    const data = await apiFetch("/models/");
+    modelsCache = data || [];
+
+    const modelSelect = document.getElementById("model_select");
+    modelSelect.innerHTML = '<option value="">Select model…</option>';
+
+    modelsCache.forEach(m => {
+      const opt = document.createElement("option");
+      opt.value = m.model;
+      opt.textContent = m.model;
+      modelSelect.appendChild(opt);
+    });
+
+    updateModelVersions();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function updateModelVersions() {
+  const modelName = document.getElementById("model_select").value;
+  const versionSelect = document.getElementById("model_version_select");
+  versionSelect.innerHTML = '<option value="">Select version…</option>';
+
+  const found = modelsCache.find(m => m.model === modelName);
+  if (found && Array.isArray(found.versions)) {
+    found.versions.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      versionSelect.appendChild(opt);
+    });
+  }
+}
+
+function resetExperimentForm() {
+  document.getElementById("dataset_select").value = "";
+  updateDatasetVersions();
+  document.getElementById("model_select").value = "";
+  updateModelVersions();
+  document.getElementById("params").value = "";
+}
+
+async function createExperiment() {
+  const datasetName = document.getElementById("dataset_select").value;
+  const datasetVersion = document.getElementById("dataset_version_select").value;
+  const modelName = document.getElementById("model_select").value;
+  const modelVersion = document.getElementById("model_version_select").value;
+  const paramsRaw = document.getElementById("params").value || "{}";
+
+  if (!datasetName || !datasetVersion || !modelName || !modelVersion) {
+    alert("Please select dataset, version, model, and model version.");
+    return;
+  }
+
+  let hyperparameters = {};
+  try {
+    hyperparameters = JSON.parse(paramsRaw);
+  } catch (e) {
+    alert("Hyperparameters must be valid JSON.");
+    return;
+  }
+
+  const body = {
+    dataset: {
+      name: datasetName,
+      version: datasetVersion
+    },
+    model: {
+      name: modelName,
+      version: modelVersion
+    },
+    hyperparameters
+  };
+
+  try {
+    const res = await fetch("/api/experiments/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Failed to create experiment: " + JSON.stringify(data));
+      return;
+    }
+
+    alert("Experiment created: " + data.experiment_id);
+    refreshAll();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error while creating experiment.");
+  }
+}
+
+async function runExperiment(id) {
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+
+  if (!confirm("Run experiment " + id + " now?")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/experiments/${id}/run`, {
+      method: "POST"
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Run failed: " + JSON.stringify(data));
+    } else {
+      alert("Run started / completed: " + JSON.stringify(data, null, 2));
+    }
+    refreshAll();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error while running experiment.");
+  }
+}
+
+async function replayExperiment(id) {
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+
+  if (!confirm("Replay experiment " + id + " using stored configuration?")) {
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/replay/${id}`, {
+      method: "POST"
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert("Replay failed: " + JSON.stringify(data));
+    } else {
+      alert("Replay completed: " + JSON.stringify(data, null, 2));
+    }
+    refreshAll();
+  } catch (err) {
+    console.error(err);
+    alert("Unexpected error while replaying experiment.");
+  }
+}
+
+function viewExperiment(id) {
+  if (!id) return;
+  window.location.href = `/ui/experiment_output.html?experiment_id=${encodeURIComponent(id)}`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dsSelect = document.getElementById("dataset_select");
+  const modelSelect = document.getElementById("model_select");
+  if (dsSelect) dsSelect.addEventListener("change", updateDatasetVersions);
+  if (modelSelect) modelSelect.addEventListener("change", updateModelVersions);
+
+  const statusFilter = document.getElementById("filter_status");
+  const searchFilter = document.getElementById("filter_search");
+  if (statusFilter) statusFilter.addEventListener("change", renderExperimentsTable);
+  if (searchFilter) searchFilter.addEventListener("input", renderExperimentsTable);
+
+  refreshAll();
+});
+</script>
+
+</body>
+</html>

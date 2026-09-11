@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Experiment Detail • FossilAI</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="sidebar-header">
+        FossilAI
+        <div class="sidebar-subtitle">Experiment Console</div>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Main</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiments.html"
+               class="nav-link"
+               data-page="experiments.html">
+              <span class="nav-dot"></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/comparison.html"
+               class="nav-link"
+               data-page="comparison.html">
+              <span class="nav-dot"></span>
+              <span>Compare</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Registry</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/datasets.html"
+               class="nav-link"
+               data-page="datasets.html">
+              <span class="nav-dot"></span>
+              <span>Datasets</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/models.html"
+               class="nav-link"
+               data-page="models.html">
+              <span class="nav-dot"></span>
+              <span>Models</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="nav-section">
+        <div class="nav-section-title">Runs</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="/ui/experiment_output.html"
+               class="nav-link"
+               data-page="experiment_output.html">
+              <span class="nav-dot"></span>
+              <span>Experiment Detail</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/experiment_predict.html"
+               class="nav-link"
+               data-page="experiment_predict.html">
+              <span class="nav-dot"></span>
+              <span>Inference</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/replay.html"
+               class="nav-link"
+               data-page="replay.html">
+              <span class="nav-dot"></span>
+              <span>Replay</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="/ui/tickets.html"
+               class="nav-link"
+               data-page="tickets.html">
+              <span class="nav-dot"></span>
+              <span>Tickets</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div>Backed by Fossil SCM</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-header">
+      <div>
+        <div class="page-title">
+          Experiment detail
+          <span class="tag">
+            <span class="tag-key">ID</span>
+            <span class="tag-value text-mono" id="header_experiment_id">-</span>
+          </span>
+        </div>
+        <div class="page-subtitle">
+          Inspect configuration, status, metrics, and artifacts for a single experiment.
+        </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-outline" onclick="navigateToComparison()">
+          Compare
+        </button>
+        <button class="btn btn-outline" onclick="navigateToInference()">
+          Inference
+        </button>
+        <button class="btn btn-outline" onclick="navigateToReplay()">
+          Replay
+        </button>
+      </div>
+    </header>
+
+    <section>
+      <div class="card">
+        <div class="card-body">
+          <div class="form-row">
+            <label class="form-label" for="exp_id">Experiment ID</label>
+            <input id="exp_id" type="text" placeholder="exp-…" />
+          </div>
+          <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:8px;">
+            <button class="btn btn-outline" onclick="clearExperimentId()">Clear</button>
+            <button class="btn btn-primary" onclick="loadOutput()">Load experiment</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="layout-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Summary</div>
+              <div class="card-subtitle">Lineage, status, and timing.</div>
+            </div>
+          </div>
+          <div class="card-body" id="summary_panel">
+            <div class="table-empty">Load an experiment to see details.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Metrics</div>
+              <div class="card-subtitle">Reported metrics from the latest run.</div>
+            </div>
+          </div>
+          <div class="card-body" id="metrics_panel">
+            <div class="table-empty">No metrics loaded.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section style="margin-top:20px;">
+      <div class="layout-grid">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Raw metadata</div>
+              <div class="card-subtitle">Underlying JSON artifacts for reproducibility.</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="page-section-title">Experiment metadata</div>
+            <pre id="meta"></pre>
+            <div class="page-section-title" style="margin-top:12px;">Run status</div>
+            <pre id="run_meta"></pre>
+            <div class="page-section-title" style="margin-top:12px;">Metrics JSON</div>
+            <pre id="metrics_raw"></pre>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Artifacts & log</div>
+              <div class="card-subtitle">Model artifact presence and training log.</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="page-section-title">Model artifact</div>
+            <pre id="model"></pre>
+            <div class="page-section-title" style="margin-top:12px;">Training log</div>
+            <pre id="log"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="common.js"></script>
+<script>
+async function loadOutput() {
+  const id = document.getElementById("exp_id").value.trim();
+  if (!id) {
+    alert("Experiment id is required.");
+    return;
+  }
+  document.getElementById("header_experiment_id").innerText = id;
+
+  try {
+    const data = await apiFetch(`/experiments/${id}/output`);
+
+    const experimentMeta = data.experiment_meta || {};
+    const runMeta = data.run_meta || {};
+    const metrics = data.metrics || {};
+
+    document.getElementById("meta").innerText = JSON.stringify(experimentMeta, null, 2);
+    document.getElementById("run_meta").innerText = JSON.stringify(runMeta, null, 2);
+    document.getElementById("metrics_raw").innerText = JSON.stringify(metrics, null, 2);
+
+    const hasModel = data.model_exists;
+    document.getElementById("model").innerText = hasModel
+      ? "Trained model exists at experiments/" + id + "/output/model.bin"
+      : "Model artifact not found";
+
+    document.getElementById("log").innerText = data.log || "No log available.";
+
+    renderSummary(experimentMeta, runMeta);
+    renderMetrics(metrics);
+  } catch (err) {
+    console.error(err);
+    alert("Failed to load experiment output.");
+  }
+}
+
+function renderSummary(experimentMeta, runMeta) {
+  const panel = document.getElementById("summary_panel");
+  if (!experimentMeta || !Object.keys(experimentMeta).length) {
+    panel.innerHTML = '<div class="table-empty">No metadata available.</div>';
+    return;
+  }
+
+  const createdAt = experimentMeta.created_at || "-";
+  const runStatus = (runMeta.status || "unknown");
+  const statusHtml = statusBadge(runStatus);
+
+  panel.innerHTML = `
+    <div class="form-row">
+      <div class="form-label">Experiment id</div>
+      <div class="text-mono">${experimentMeta.experiment_id || "-"}</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Created at</div>
+      <div>${createdAt}</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Status</div>
+      <div>${statusHtml}</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Return code</div>
+      <div>${runMeta.return_code !== undefined ? runMeta.return_code : "-"}</div>
+    </div>
+    <div class="form-row">
+      <div class="form-label">Finished at</div>
+      <div>${runMeta.finished_at || "-"}</div>
+    </div>
+  `;
+}
+
+function renderMetrics(metrics) {
+  const panel = document.getElementById("metrics_panel");
+  if (!metrics || !Object.keys(metrics).length) {
+    panel.innerHTML = '<div class="table-empty">No metrics recorded for this experiment.</div>';
+    return;
+  }
+
+  const items = Object.entries(metrics).map(([key, value]) => {
+    const formatted = typeof value === "number" ? value.toFixed(4) : value;
+    return `
+      <div class="form-row">
+        <div class="form-label">${key}</div>
+        <div>${formatted}</div>
+      </div>
+    `;
+  }).join("");
+
+  panel.innerHTML = items;
+}
+
+function clearExperimentId() {
+  document.getElementById("exp_id").value = "";
+  document.getElementById("header_experiment_id").innerText = "-";
+}
+
+function navigateToInference() {
+  const id = document.getElementById("exp_id").value.trim();
+  if (!id) {
+    window.location.href = "/ui/experiment_predict.html";
+  } else {
+    window.location.href = "/ui/experiment_predict.html?experiment_id=" + encodeURIComponent(id);
+  }
+}
+
+function navigateToReplay() {
+  const id = document.getElementById("exp_id").value.trim();
+  if (!id) {
+    window.location.href = "/ui/replay.html";
+  } else {
+    window.location.href = "/ui/replay.html?experiment_id=" + encodeURIComponent(id);
+  }
+}
+
+function navigateToComparison() {
+  window.location.href = "/ui/comparison.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const fromQuery = getQueryParam("experiment_id");
+  if (fromQuery) {
+    document.getElementById("exp_id").value = fromQuery;
+    loadOutput();
+  }
+});
+</script>
+
+</body>
+</html>
